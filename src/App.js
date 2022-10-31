@@ -8,16 +8,39 @@ class App extends React.Component {
         product_list: [],
         selected_category: '',
         fetching: false,
-        url_changed_at: new Date(),
+        counter: 0,
+        automatic_timer: 3
     };
 
     componentDidMount() {
         this.get_all_products()
     }
 
+    startTimer = (start=true) => {
+        if (start && (this.state.new_url != '')){
+            clearInterval(this.timer)
+            this.setState({counter: 0})
+            this.timer = setInterval(() => {
+                if (this.state.counter<this.state.automatic_timer){
+                    this.setState({counter: this.state.counter + 1})
+                }
+                else {
+                    clearInterval(this.timer)
+                    this.setState({counter: 0})
+                    if (this.state.new_url != ''){
+                        this.handleSubmit()
+                    }
+                }}, 1000);
+        }
+        else {
+            clearInterval(this.timer)
+            this.setState({counter: 0})
+        }
+    }
+
     get_all_products = () => {
-        this.setState({fetching: true})
-        axios.get('http://127.0.0.1:8000/api/get_all_products/').then((response) => {
+        this.setState({fetching: true, counter: 0})
+        axios.get('http://asifrahman15.pythonanywhere.com/api/get_all_products/').then((response) => {
             let data = response.data
             data.map((product, index) => {
                 data[index]['selected_image'] = 0
@@ -31,12 +54,14 @@ class App extends React.Component {
             this.setState({product_list: data, fetching: false})
         }).catch((error) => {
             console.error(error)
+            window.alert(error)
+            this.setState({fetching: false})
         })
     }
 
     handleSubmit = () => {
         this.setState({fetching: true})
-        axios.post('http://127.0.0.1:8000/api/fetch_product/', {product_url: this.state.new_url}).then((response) => {
+        axios.post('http://asifrahman15.pythonanywhere.com/api/fetch_product/', {product_url: this.state.new_url}).then((response) => {
             let data = response.data
             data['selected_image'] = 0
             data['full_description'] = false
@@ -47,6 +72,8 @@ class App extends React.Component {
             this.setState({product_list: product_list, new_url: '', fetching: false})
         }).catch((error) => {
             console.error(error)
+            window.alert(error)
+            this.setState({fetching: false})
         })
     }
 
@@ -69,10 +96,10 @@ class App extends React.Component {
                     <div className='card-header'>
                         <div className='row'>
                             <div className='col-lg-10 col-md-9 col-sm-8 mx-auto'>
-                                <input type='text' className='form-control' value={this.state.new_url} onChange={(e) => this.setState({new_url: e.target.value, url_changed_at: new Date()})}></input>
+                                <input type='text' className='form-control' value={this.state.new_url} onChange={(e) => this.setState({new_url: e.target.value}, this.startTimer)}></input>
                             </div>
                             <div className='col-lg-2 col-md-3 col-sm-4 mx-auto'>
-                                <button className='btn btn-success' disable={this.state.fetching || this.state.new_url==''} onClick={this.handleSubmit}>Fetch Product </button>
+                                <button className='btn btn-success' disable={this.state.fetching || this.state.new_url==''} onClick={this.handleSubmit}>Fetch Immediate {(this.state.counter==0)?"":`(${this.state.automatic_timer + 1 - this.state.counter})`}</button>
                             </div>
                         </div>
                     </div>
