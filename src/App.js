@@ -40,7 +40,7 @@ class App extends React.Component {
 
     get_all_products = () => {
         this.setState({fetching: true, counter: 0})
-        axios.get('http://asifrahman15.pythonanywhere.com/api/get_all_products/').then((response) => {
+        axios.get('https://flipkart-scraper-backend.herokuapp.com/api/get_all_products/').then((response) => {
             let data = response.data
             data.map((product, index) => {
                 data[index]['selected_image'] = 0
@@ -60,8 +60,9 @@ class App extends React.Component {
     }
 
     handleSubmit = () => {
-        this.setState({fetching: true})
-        axios.post('http://asifrahman15.pythonanywhere.com/api/fetch_product/', {product_url: this.state.new_url}).then((response) => {
+        clearInterval(this.timer)
+        this.setState({fetching: true, counter: 0})
+        axios.post('https://flipkart-scraper-backend.herokuapp.com/api/fetch_product/', {product_url: this.state.new_url}).then((response) => {
             let data = response.data
             data['selected_image'] = 0
             data['full_description'] = false
@@ -99,7 +100,7 @@ class App extends React.Component {
                                 <input type='text' className='form-control' value={this.state.new_url} onChange={(e) => this.setState({new_url: e.target.value}, this.startTimer)}></input>
                             </div>
                             <div className='col-lg-2 col-md-3 col-sm-4 mx-auto'>
-                                <button className='btn btn-success' disable={this.state.fetching || this.state.new_url==''} onClick={this.handleSubmit}>Fetch Immediate {(this.state.counter==0)?"":`(${this.state.automatic_timer + 1 - this.state.counter})`}</button>
+                                <button className='btn btn-success' disabled={this.state.fetching || this.state.new_url==''} onClick={this.handleSubmit}>Fetch Immediate {(this.state.counter==0)?"":`(${this.state.automatic_timer + 1 - this.state.counter})`}</button>
                             </div>
                         </div>
                     </div>
